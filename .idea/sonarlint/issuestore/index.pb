@@ -1,0 +1,19 @@
+
+?
+gyro_record.csv,0\e\0ecfc840269d4703ab170531ad70c9992d287f2d
+7
+gyro.py,c\f\cfa8c5122763510edef1479ce6a38fec753c2fac
+@
+gyro_record2.csv,4\d\4d071ec72ae5ecc1cef7b89496944fab76f14a04
+?
+gyro_record.txt,f\1\f17c26b5b99b88a75d2e306c564e031927fc522c
+Q
+!mpu9250/mpu9250_p3/mpu9250_p3.ino,e\e\eef88ff9cdebe290a4fa2ec5e88fef9f0633bd82
+a
+1mpu9250/mpu9250_processing/mpu9250_processing.ino,4\5\457373b0b3e2ed0480f9747aec9a19a6d02c29bd
+O
+gyro_record_20190626-153332.csv,a\f\af6934b0b1a3d3a1de61b9a7aaff23b3f6a1f613
+O
+gyro_record_20190626-153428.csv,6\b\6bb44bbd4c763b09390864b1d6b2c1bf824c2c56
+O
+gyro_record_20190626-153444.csv,1\d\1dab48443f49555d9bcd9131993944ddd40cca07
