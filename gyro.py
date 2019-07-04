@@ -19,7 +19,7 @@ if __name__ == '__main__':
                     # f.write('time, roll, pitch\n')
                     interval = millis()
 
-                    f.write('time,yaw,pitch,roll,acc x,acc y,acc z\n')
+                    f.write('time,quat w,quat x,quat y,quat z,acc x,acc y,acc z\n')
 
                     while True:
                         if millis() - interval > 1000:
@@ -27,7 +27,7 @@ if __name__ == '__main__':
                             interval = millis()
                         while bluetooth.in_waiting:
                             packet = bluetooth.readline().decode('ascii', 'replace').split()
-                            if len(packet) == 7:
+                            if len(packet) == 8:
                                 f.write(datetime.datetime.now().__str__())
                                 for value in packet[1:]:
                                     f.write(',' + value)
