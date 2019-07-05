@@ -2,6 +2,11 @@ import serial.tools.list_ports
 from serial import Serial
 import datetime
 import time
+from scipy.spatial.transform import Rotation as R
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 
 millis = lambda: int(round(time.time() * 1000))
 
@@ -11,54 +16,60 @@ if __name__ == '__main__':
     for p in ports:
         if p.serial_number == '55632313838351214152':
             try:
-                bluetooth = Serial(p.device, 115200, timeout=0.1)
-                bluetooth.write('r\r\n'.encode('ascii', 'replace'))
+                gyro_sensor = Serial(p.device, 115200, timeout=0.1)
+                gyro_sensor.write('r\r\n'.encode('ascii', 'replace'))
                 filename = datetime.datetime.now().strftime("./gyro_record_%Y%m%d-%H%M%S.csv")
 
                 with open(filename, 'w') as f:
                     # f.write('time, roll, pitch\n')
                     interval = millis()
+                    pos = np.array([0, 10, 0])
+
+                    plt.ion()
+                    fig = plt.figure()
+                    ax = Axes3D(fig)
+                    ax.autoscale(enable=True, axis='both', tight=True)
+
+                    ax.set_xlim3d([-15, 15])
+                    ax.set_ylim3d([-15, 15])
+                    ax.set_zlim3d([-15, 15])
+
+                    dat_X, dat_Y, dat_Z = [], [], []
+                    line1, = ax.plot3D(dat_X, dat_Y, dat_Z)
 
                     f.write('time,quat w,quat x,quat y,quat z,acc x,acc y,acc z\n')
 
                     while True:
                         if millis() - interval > 1000:
-                            bluetooth.write('r\r\n'.encode('ascii', 'replace'))
+                            gyro_sensor.write('r\r\n'.encode('ascii', 'replace'))
                             interval = millis()
-                        while bluetooth.in_waiting:
-                            packet = bluetooth.readline().decode('ascii', 'replace').split()
+                        while gyro_sensor.in_waiting:
+                            packet = gyro_sensor.readline().decode('ascii', 'replace').split()
+                            gyro_sensor.flushInput()
                             if len(packet) == 8:
-                                f.write(datetime.datetime.now().__str__())
-                                for value in packet[1:]:
-                                    f.write(',' + value)
-                                f.write('\n')
-                            """
-                            elif chr(int.from_bytes(packet[:1], byteorder='big')) == '$' and len(packet) == 14:
-                                q = []
-                                q.append(((packet[2] << 8) | packet[3]) / 16384)
-                                q.append(((packet[4] << 8) | packet[5]) / 16384)
-                                q.append(((packet[6] << 8) | packet[7]) / 16384)
-                                q.append(((packet[8] << 8) | packet[9]) / 16384)
-                                for i in range(4):
-                                    if q[i] >= 2:
-                                        q[i] = -4 + q[i]
+                                try:
+                                    f.write(datetime.datetime.now().__str__())
+                                    for value in packet[1:]:
+                                        f.write(',' + value)
+                                    f.write('\n')
 
-                                gravity = [0, 0, 0]
-                                ypr = [0, 0, 0]
+                                    r = R.from_quat(packet[1:5])
 
-                                gravity[0] = 2 * (q[1] * q[3] - q[0] * q[2])
-                                gravity[1] = 2 * (q[0] * q[1] + q[2] * q[3])
-                                gravity[2] = q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]
+                                    rot = r.as_dcm().dot(pos)
+                                    dat_X.append(rot[0])
+                                    dat_Y.append(rot[1])
+                                    dat_Z.append(rot[2])
+                                    print(r.as_dcm().dot(pos))
 
-                                ypr[0] = math.atan2(2 * q[1] * q[2] - 2 * q[0] * q[3],
-                                                    2 * q[0] * q[0] + 2 * q[1] * q[1] - 1)
-                                ypr[1] = math.atan(
-                                    gravity[0] / math.sqrt(gravity[1] * gravity[1] + gravity[2] * gravity[2]))
-                                ypr[2] = math.atan(
-                                    gravity[1] / math.sqrt(gravity[0] * gravity[0] + gravity[2] * gravity[2]))
+                                    line1.set_xdata(dat_X)
+                                    line1.set_ydata(dat_Y)
+                                    line1.set_3d_properties(dat_Z)
 
-                                print("ypr:\t", ypr[0] * 180.0 / math.pi, "\t", ypr[1] * 180.0 / math.pi, "\t",
-                                      ypr[2] * 180.0 / math.pi)
-                            """
+                                    plt.draw()
+                                    plt.show(block=False)
+                                    plt.pause(0.0001)
+                                except Exception as e:
+                                    print(e)
+
             except Exception as e:
                 print(e)
