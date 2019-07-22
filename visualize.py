@@ -12,7 +12,6 @@ def degree2radians(degree):
 
 def mapping_map_to_sphere(lon, lat, radius=1):
     # this function maps the points of coords (lon, lat) to points onto the  sphere of radius radius
-
     lon = np.array(lon, dtype=np.float64)
     lat = np.array(lat, dtype=np.float64)
     lon = degree2radians(lon)
@@ -30,9 +29,6 @@ with warnings.catch_warnings():
         lon = f.variables['lon'][::]
         lat = f.variables['lat'][::-1]
         olr = f.variables['air'][0, ::-1, :]
-        print(lon)
-        print(lat)
-        print(olr)
 
 tmp_lon = np.array([lon[n]-360 if l >= 180 else lon[n] for n, l in enumerate(lon)])
 
@@ -48,64 +44,7 @@ print(olr)
 # not specifying projection type for this example
 m = Basemap()
 
-
-# Functions converting coastline/country polygons to lon/lat traces
-def polygons_to_traces(poly_paths, N_poly):
-    '''
-    pos arg 1. (poly_paths): paths to polygons
-    pos arg 2. (N_poly): number of polygon to convert
-    '''
-    # init. plotting list
-    lons = []
-    lats = []
-
-    for i_poly in range(N_poly):
-        poly_path = poly_paths[i_poly]
-
-        # get the Basemap coordinates of each segment
-        coords_cc = np.array(
-            [(vertex[0], vertex[1])
-             for (vertex, code) in poly_path.iter_segments(simplify=False)]
-        )
-
-        # convert coordinates to lon/lat by 'inverting' the Basemap projection
-        lon_cc, lat_cc = m(coords_cc[:, 0], coords_cc[:, 1], inverse=True)
-
-        lats.extend(lat_cc.tolist() + [None])
-        lons.extend(lon_cc.tolist() + [None])
-
-    return lons, lats
-
-
-# Function generating coastline lon/lat
-def get_coastline_traces():
-    poly_paths = m.drawcoastlines().get_paths()  # coastline polygon paths
-    N_poly = 91  # use only the 91st biggest coastlines (i.e. no rivers)
-    cc_lons, cc_lats = polygons_to_traces(poly_paths, N_poly)
-    return cc_lons, cc_lats
-
-
-# Function generating country lon/lat
-def get_country_traces():
-    poly_paths = m.drawcountries().get_paths()  # country polygon paths
-    N_poly = len(poly_paths)  # use all countries
-    country_lons, country_lats = polygons_to_traces(poly_paths, N_poly)
-    return country_lons, country_lats
-
-
-# Get list of of coastline, country, and state lon/lat
-
-cc_lons, cc_lats=get_coastline_traces()
-country_lons, country_lats=get_country_traces()
-
-#concatenate the lon/lat for coastlines and country boundaries:
-lons = cc_lons+[None]+country_lons
-lats = cc_lats+[None]+country_lats
-
-xs, ys, zs = mapping_map_to_sphere(lons, lats, radius=1.01)
-boundaries = dict(type='scatter3d', x=xs, y=ys, z=zs, mode='lines', line=dict(color='black', width=1))
-
-colorscale=[[0.0, '#313695'],
+colorscale = [[0.0, '#313695'],
  [0.07692307692307693, '#3a67af'],
  [0.15384615384615385, '#5994c5'],
  [0.23076923076923078, '#84bbd8'],
@@ -120,21 +59,21 @@ colorscale=[[0.0, '#313695'],
  [0.9230769230769231, '#cc2727'],
  [1.0, '#a50026']]
 
-clons=np.array(lon.tolist()+[180], dtype=np.float64)
-clats=np.array(lat, dtype=np.float64)
-clons, clats=np.meshgrid(clons, clats)
+clons = np.array(lon.tolist()+[180], dtype=np.float64)
+clats = np.array(lat, dtype=np.float64)
+clons, clats = np.meshgrid(clons, clats)
 XS, YS, ZS = mapping_map_to_sphere(clons, clats)
 
-nrows, ncolumns=clons.shape
-OLR=np.zeros(clons.shape, dtype=np.float64)
-OLR[:, :ncolumns-1]=np.copy(np.array(olr,  dtype=np.float64))
-OLR[:, ncolumns-1]=np.copy(olr[:, 0])
+nrows, ncolumns = clons.shape
+OLR = np.zeros(clons.shape, dtype=np.float64)
+OLR[:, :ncolumns-1] = np.copy(np.array(olr,  dtype=np.float64))
+OLR[:, ncolumns-1] = np.copy(olr[:, 0])
 print(OLR)
 
-text=[['lon: '+'{:.2f}'.format(clons[i,j])+'<br>lat: '+'{:.2f}'.format(clats[i, j])+
+text = [['lon: '+'{:.2f}'.format(clons[i, j])+'<br>lat: '+'{:.2f}'.format(clats[i, j]) +
         '<br>W: '+'{:.2f}'.format(OLR[i][j]) for j in range(ncolumns)] for i in range(nrows)]
 
-sphere=dict(type='surface',
+sphere = dict(type='surface',
             x=XS,
             y=YS,
             z=ZS,
