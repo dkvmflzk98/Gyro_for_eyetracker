@@ -13,8 +13,8 @@ def as_spherical(cartesian):
 
 
 if __name__ == '__main__':
-    write_file = False
-    visualize = True
+    write_file = True
+    visualize = False
     filename = './gyro_record_20190704-205009.csv'
 
     with open(filename) as f:
@@ -22,11 +22,11 @@ if __name__ == '__main__':
         pos = np.array([1, 0, 0])
 
         if write_file:
-            with open('./gyro_spherical_record' + filename.split('_')[2], 'w') as rf:
+            with open('./gaze_spherical_record_' + filename.split('_')[2], 'w') as rf:
                 # theta: 0~180, phi: -180~180
-                rf.write('n,r,theta,phi\n')
-                for n, line in enumerate(lines[1:]):
-                    out = str(n)
+                rf.write('time,r,theta,phi\n')
+                for line in lines[1:]:
+                    out = str(line.split(',')[0])
                     rot_info = Rotation.from_quat(line.split(',')[1:5])
                     result_vector = rot_info.as_dcm().dot(pos)
 
